@@ -2,15 +2,27 @@ name: Idea or feature
 description: Something the app should do.
 labels: [enhancement]
 body:
-  - type: input
+  - type: textarea
     id: idea
     attributes:
       label: What should it do?
       placeholder: "Show the budget per day"
     validations:
       required: true
-  - type: input
+  - type: textarea
     id: why
     attributes:
       label: Why?
       placeholder: "So I know if I can afford one more night"
+  - type: dropdown
+    id: rating
+    attributes:
+      label: How would you rate the app?
+      options:
+        - "⭐ 1"
+        - "⭐⭐ 2"
+        - "⭐⭐⭐ 3"
+        - "⭐⭐⭐⭐ 4"
+        - "⭐⭐⭐⭐⭐ 5"
+    validations:
+      required: true

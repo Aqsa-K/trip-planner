@@ -2,21 +2,27 @@ name: Something's broken
 description: Tell us what went wrong. Short is fine.
 labels: [bug]
 body:
-  - type: input
+  - type: textarea
     id: what
     attributes:
       label: What happened?
-      placeholder: "Total ignores my last expense"
+      placeholder: "The trip says -24 days"
     validations:
       required: true
-  - type: input
+  - type: textarea
     id: expected
     attributes:
       label: What did you expect?
-      placeholder: "Total should include every expense"
-  - type: input
-    id: ref
+      placeholder: "26 Dec to 2 Jan should be 8 days"
+  - type: dropdown
+    id: rating
     attributes:
-      label: Error ref or user id
-      description: Shown at the bottom of the app, or on the error screen (e.g. u-4821).
-      placeholder: "u-4821"
+      label: How would you rate the app?
+      options:
+        - "⭐ 1"
+        - "⭐⭐ 2"
+        - "⭐⭐⭐ 3"
+        - "⭐⭐⭐⭐ 4"
+        - "⭐⭐⭐⭐⭐ 5"
+    validations:
+      required: true
