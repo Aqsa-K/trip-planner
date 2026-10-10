@@ -4,16 +4,16 @@ import {
 import { getRate } from './rates.js';
 import { getUserId } from './user.js';
 
-const STORE = 'tp.trip';
+const STORE = 'tp.trip.v2';
 const SAMPLE = {
   name: 'Lahore → Hunza',
-  start: '2026-10-20',
-  end: '2026-10-22',
+  start: '2026-12-26',
+  end: '2027-01-02',
   stops: [
-    { name: 'Karimabad, Hunza', date: '2026-10-21' },
-    { name: 'Lahore', date: '2026-10-20' },
-    { name: 'Attabad Lake', date: '2026-10-22' },
-    { name: 'Naran', date: '2026-10-20' },
+    { name: 'Karimabad, Hunza', date: '2026-12-28' },
+    { name: 'Lahore', date: '2026-12-26' },
+    { name: 'Attabad Lake', date: '2026-12-30' },
+    { name: 'Naran', date: '2026-12-26' },
   ],
   expenses: [
     { label: 'Bus tickets', amount: 12000 },

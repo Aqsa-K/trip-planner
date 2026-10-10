@@ -53,10 +53,16 @@ resize to 390×844, check the change with `take_snapshot`, make sure
 `list_console_messages` shows no errors, then `take_screenshot` to
 `docs/evidence/issue-$N.png`.
 
-No MCP? Use headless Chrome:
+No MCP? Use headless Chrome. It lays out wider than 390 px (use 500) and doesn't
+exit after the screenshot, so start it in the background and stop it yourself:
 ```bash
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars \
-  --window-size=390,844 --screenshot="docs/evidence/issue-$N.png" "http://127.0.0.1:$PORT/?user=u-1001"
+CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+SHOT="docs/evidence/issue-$N.png"
+"$CHROME" --headless --hide-scrollbars --user-data-dir="/tmp/tp-shot-$N" --window-size=500,1000 \
+  --screenshot="$SHOT" "http://127.0.0.1:$PORT/?user=u-1001" >/dev/null 2>&1 &
+CPID=$!
+for i in $(seq 1 20); do [ -s "$SHOT" ] && break; sleep 1; done
+sleep 2; kill $CPID 2>/dev/null
 ```
 Stop the server when done (`kill %1`).
 

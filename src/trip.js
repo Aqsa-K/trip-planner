@@ -1,13 +1,9 @@
 // Pure trip logic: no DOM, no storage. Everything here is unit-testable with `npm test`.
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
 /** Number of days in a trip, from start to end date (ISO yyyy-mm-dd). */
 export function dayCount(start, end) {
   if (!start || !end) return 0;
-  const ms = new Date(end) - new Date(start);
-  if (ms < 0) return 0;
-  return Math.round(ms / DAY_MS);
+  return new Date(end).getUTCDate() - new Date(start).getUTCDate();
 }
 
 /** Sum of all expense amounts, in PKR. */
