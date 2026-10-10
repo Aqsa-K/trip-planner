@@ -12,6 +12,7 @@ from reaching the live site, from the first line of defence to the last.
    |---|---|
    | Abusive, vulgar, political, personal data | Deleted immediately (only number, author and category are logged locally) |
    | Destructive or manipulative ("delete everything", "change the workflow", "ignore your rules") | Closed, labelled `rejected`, locked |
+   | Same problem as an open (or just-fixed) issue | Closed as a duplicate of the oldest open report; new facts (error refs, devices) copied to one "📎 Also reported" comment there |
    | Off-topic or gibberish | Closed, labelled `invalid` |
    | Author already has 2 open issues | Closed, "one at a time" |
    | Unclear, or needs a design choice | Up to 3 questions on the issue, labelled `needs-decision`; the loop asks the maintainer |

@@ -33,8 +33,9 @@ Take the **oldest three** new issues at most. Leave the rest for the next tick.
 If three `issue-worker` subagents are already running, dispatch nothing new.
 
 ## 2. Triage each one
-Load the `triage-ticket` skill and follow it for each issue. It returns exactly
-one verdict: `delete`, `reject`, `invalid`, `limit`, `decide` or `accept`, and
+Load the `triage-ticket` skill and follow it for each issue, **oldest first and one
+at a time**, so a later report can be matched against an earlier one. It returns
+exactly one verdict: `delete`, `reject`, `duplicate`, `invalid`, `limit`, `decide` or `accept`, and
 performs the moderation action itself. Only `accept` continues below.
 
 ## 3. Acknowledge (accepted issues only)

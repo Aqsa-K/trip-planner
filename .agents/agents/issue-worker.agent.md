@@ -27,6 +27,8 @@ REPO=<repo>; N=<issue number>
 gh issue view $N --repo $REPO --comments
 ```
 If there's a "🧭 Maintainer's decision" comment, it overrides the issue text.
+If there's a "📎 Also reported" comment, check your fix against every error ref and
+detail listed there too: duplicates often carry the clue the original lacks.
 Read `AGENTS.md` for how the app is built and tested.
 
 ## 2. Isolate
