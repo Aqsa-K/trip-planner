@@ -1,0 +1,78 @@
+name: Factory guard
+
+# Runs on pull_request_target, so the definition from main is used, never the PR's copy:
+# a PR that edits this file can't switch it off. It never checks out or runs PR code;
+# it only reads the list of changed files from the API.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+  issues: write
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      PR: ${{ github.event.pull_request.number }}
+      SHA: ${{ github.event.pull_request.head.sha }}
+      BODY: ${{ github.event.pull_request.body }}
+    steps:
+      - name: Check the change
+        id: check
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/pulls/$PR/files" --paginate > files.json
+          problems=()
+
+          allowed='^(index\.html|styles\.css|src/.+|tests/.+|docs/evidence/[A-Za-z0-9._-]+\.(png|jpg|jpeg|webp))$'
+          while IFS=$'\t' read -r name status prev; do
+            [[ "$name" =~ $allowed ]] || problems+=("changes a protected path: $name")
+            [[ "$status" == "removed" ]] && problems+=("deletes a file: $name")
+            [[ "$status" == "renamed" && ! "$prev" =~ $allowed ]] && problems+=("moves a protected file: $prev")
+          done < <(jq -r '.[] | [.filename, .status, (.previous_filename // "")] | @tsv' files.json)
+
+          deleted=$(jq '[.[].deletions] | add // 0' files.json)
+          (( deleted > 150 )) && problems+=("removes $deleted lines (limit 150)")
+
+          added=$(jq -r '.[].patch // "" | split("\n")[] | select(startswith("+"))' files.json)
+          if grep -Eiq 'eval\(|new Function\(|document\.cookie|localStorage\.clear' <<<"$added"; then
+            problems+=("adds a risky API (eval, new Function, document.cookie or localStorage.clear)")
+          fi
+          urls=$(grep -Eo 'https?://[^ "'"'"')>]+' <<<"$added" || true)
+          for u in $urls; do
+            [[ "$u" =~ ^https?://(fonts\.googleapis\.com|fonts\.gstatic\.com|github\.com/mashhoodr/trip-planner|mashhoodr\.github\.io)(/|$) ]] \
+              || problems+=("adds an external link or script: $u")
+          done
+
+          grep -Eiq '(fixes|closes|resolves) #[0-9]+' <<<"$BODY" || problems+=("doesn't say which issue it fixes (Fixes #N)")
+
+          if (( ${#problems[@]} )); then
+            printf -- '- %s\n' "${problems[@]}" > problems.md
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pass
+        if: steps.check.outputs.ok == 'true'
+        run: |
+          gh api -X POST "repos/$REPO/statuses/$SHA" -f state=success -f context=factory-guard \
+            -f description="Only app files changed; no deletions or external code"
+
+      - name: Block and close
+        if: steps.check.outputs.ok == 'false'
+        run: |
+          gh api -X POST "repos/$REPO/statuses/$SHA" -f state=failure -f context=factory-guard \
+            -f description="Blocked by the factory guard"
+          { echo "🛑 **Blocked by the factory guard.** This pull request:"; cat problems.md;
+            echo; echo "The factory only ships small changes to the app's own files. Closing."; } > comment.md
+          gh pr comment "$PR" --repo "$REPO" --body-file comment.md
+          gh pr edit "$PR" --repo "$REPO" --add-label blocked || true
+          gh pr close "$PR" --repo "$REPO"
+          exit 1

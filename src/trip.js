@@ -43,6 +43,11 @@ export function addStop(stops, stop) {
   return [...stops, { name, date: stop.date }];
 }
 
+/** Remove the expense at `index`. Returns a new array. */
+export function removeExpense(expenses, index) {
+  return expenses.filter((_, i) => i !== index);
+}
+
 /** Add an expense. Returns a new array. */
 export function addExpense(expenses, expense) {
   const label = (expense.label || '').trim();

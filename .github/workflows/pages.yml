@@ -1,9 +1,9 @@
-name: Test and deploy to GitHub Pages
+name: Deploy to GitHub Pages
 
+# Deploys only from main. Pull requests never deploy (see test.yml and guard.yml).
 on:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -26,7 +26,6 @@ jobs:
       - run: npm test
 
   deploy:
-    if: github.ref == 'refs/heads/main'
     needs: test
     runs-on: ubuntu-latest
     environment:

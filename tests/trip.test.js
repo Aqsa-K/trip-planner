@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { addStop, addExpense, sortStops, formatPKR, formatUSD } from '../src/trip.js';
+import { addStop, addExpense, removeExpense, sortStops, formatPKR, formatUSD } from '../src/trip.js';
 import { hash } from '../src/user.js';
 
 test('addStop ignores empty names', () => {
@@ -32,4 +32,10 @@ test('formatUSD shows cents', () => {
 
 test('hash is stable', () => {
   assert.equal(hash('u-4821'), hash('u-4821'));
+});
+
+test('removeExpense removes only that item', () => {
+  const list = [{ label: 'A', amount: 1 }, { label: 'B', amount: 2 }, { label: 'C', amount: 3 }];
+  assert.deepEqual(removeExpense(list, 1).map((e) => e.label), ['A', 'C']);
+  assert.equal(list.length, 3);
 });
