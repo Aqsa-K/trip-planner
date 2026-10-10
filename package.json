@@ -1,0 +1,12 @@
+{
+  "name": "trip-planner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A tiny trip budget planner, built to be fixed by an agent loop (Pehla Qadam 2026 demo).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "start": "npx --yes serve -l 4173 ."
+  },
+  "license": "MIT"
+}

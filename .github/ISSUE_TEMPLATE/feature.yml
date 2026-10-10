@@ -1,0 +1,16 @@
+name: Idea or feature
+description: Something the app should do.
+labels: [enhancement]
+body:
+  - type: input
+    id: idea
+    attributes:
+      label: What should it do?
+      placeholder: "Show the budget per day"
+    validations:
+      required: true
+  - type: input
+    id: why
+    attributes:
+      label: Why?
+      placeholder: "So I know if I can afford one more night"

@@ -1,0 +1,129 @@
+import {
+  dayCount, total, toUSD, sortStops, removeStop, addStop, addExpense, formatPKR, formatUSD,
+} from './trip.js';
+import { getRate } from './rates.js';
+import { getUserId } from './user.js';
+
+const STORE = 'tp.trip';
+const SAMPLE = {
+  name: 'Lahore → Hunza',
+  start: '2026-10-20',
+  end: '2026-10-22',
+  stops: [
+    { name: 'Karimabad, Hunza', date: '2026-10-21' },
+    { name: 'Lahore', date: '2026-10-20' },
+    { name: 'Attabad Lake', date: '2026-10-22' },
+    { name: 'Naran', date: '2026-10-20' },
+  ],
+  expenses: [
+    { label: 'Bus tickets', amount: 12000 },
+    { label: 'Hotel, 2 nights', amount: 18000 },
+    { label: 'Food', amount: 7500 },
+    { label: 'Jeep to Attabad', amount: 6000 },
+  ],
+};
+
+const userId = getUserId();
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+function load() {
+  try {
+    return JSON.parse(localStorage.getItem(STORE)) || structuredClone(SAMPLE);
+  } catch {
+    return structuredClone(SAMPLE);
+  }
+}
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify(trip)); } catch {}
+}
+
+let trip = load();
+let rate = null;
+
+function render() {
+  const sum = total(trip.expenses);
+  const shown = sortStops(trip.stops);
+  $('#app').innerHTML = `
+    <section class="card">
+      <input class="title" id="trip-name" value="${esc(trip.name)}" aria-label="Trip name">
+      <div class="dates">
+        <label>From <input type="date" id="start" value="${trip.start}"></label>
+        <label>To <input type="date" id="end" value="${trip.end}"></label>
+      </div>
+      <p class="days"><strong>${dayCount(trip.start, trip.end)}</strong> days</p>
+    </section>
+
+    <section class="card">
+      <h2>Stops</h2>
+      <ul class="list">
+        ${shown.map((s, i) => `
+          <li><span>${esc(s.name)}</span><span class="muted">${s.date}</span>
+          <button class="del" data-stop="${i}" aria-label="Delete ${esc(s.name)}">✕</button></li>`).join('')}
+      </ul>
+      <form id="add-stop" class="row">
+        <input name="name" placeholder="Add a stop" required>
+        <input name="date" type="date" required>
+        <button>Add</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Budget</h2>
+      <ul class="list">
+        ${trip.expenses.map((e) => `<li><span>${esc(e.label)}</span><span>${formatPKR(e.amount)}</span></li>`).join('')}
+      </ul>
+      <form id="add-expense" class="row">
+        <input name="label" placeholder="Expense" required>
+        <input name="amount" type="number" inputmode="numeric" min="1" placeholder="PKR" required>
+        <button>Add</button>
+      </form>
+      <div class="totals">
+        <p>Total <strong>${formatPKR(sum)}</strong></p>
+        <p>About <strong>${formatUSD(toUSD(sum, rate))}</strong></p>
+        <p class="muted">1 USD = Rs ${rate.toFixed(0)}</p>
+      </div>
+    </section>`;
+  bind();
+}
+
+function bind() {
+  $('#trip-name').onchange = (e) => { trip.name = e.target.value; save(); };
+  $('#start').onchange = (e) => { trip.start = e.target.value; save(); render(); };
+  $('#end').onchange = (e) => { trip.end = e.target.value; save(); render(); };
+  document.querySelectorAll('[data-stop]').forEach((b) => {
+    b.onclick = () => { trip.stops = removeStop(trip.stops, Number(b.dataset.stop)); save(); render(); };
+  });
+  $('#add-stop').onsubmit = (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    trip.stops = addStop(trip.stops, { name: f.get('name'), date: f.get('date') });
+    save(); render();
+  };
+  $('#add-expense').onsubmit = (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    trip.expenses = addExpense(trip.expenses, { label: f.get('label'), amount: f.get('amount') });
+    save(); render();
+  };
+}
+
+function showError() {
+  $('#app').innerHTML = `
+    <section class="card error">
+      <h2>Something went wrong</h2>
+      <p>Please try again later.</p>
+      <p class="muted">Error ref: <code>${esc(userId)}</code></p>
+    </section>`;
+}
+window.addEventListener('error', showError);
+window.addEventListener('unhandledrejection', showError);
+
+$('#user').textContent = userId;
+$('#reset').onclick = (e) => {
+  e.preventDefault();
+  trip = structuredClone(SAMPLE); save(); render();
+};
+
+rate = await getRate(userId);
+render();

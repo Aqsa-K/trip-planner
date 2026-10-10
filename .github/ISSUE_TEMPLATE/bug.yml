@@ -1,0 +1,22 @@
+name: Something's broken
+description: Tell us what went wrong. Short is fine.
+labels: [bug]
+body:
+  - type: input
+    id: what
+    attributes:
+      label: What happened?
+      placeholder: "Total ignores my last expense"
+    validations:
+      required: true
+  - type: input
+    id: expected
+    attributes:
+      label: What did you expect?
+      placeholder: "Total should include every expense"
+  - type: input
+    id: ref
+    attributes:
+      label: Error ref or user id
+      description: Shown at the bottom of the app, or on the error screen (e.g. u-4821).
+      placeholder: "u-4821"

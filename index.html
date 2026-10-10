@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trip Planner</title>
+  <meta name="description" content="A tiny trip budget planner. Built to be fixed by an agent loop.">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="src/app.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Trip Planner</h1>
+    <a class="report" href="https://github.com/mashhoodr/trip-planner/issues/new/choose">Report a problem</a>
+  </header>
+  <main id="app">
+    <section class="card loading">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Loading your trip…</p>
+    </section>
+  </main>
+  <footer>
+    <span>You are <code id="user">…</code></span>
+    <a href="#" id="reset">Reset sample trip</a>
+  </footer>
+</body>
+</html>
