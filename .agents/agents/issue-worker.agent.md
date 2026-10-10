@@ -26,6 +26,7 @@ so don't try.
 REPO=<repo>; N=<issue number>
 gh issue view $N --repo $REPO --comments
 ```
+If there's a "🧭 Maintainer's decision" comment, it overrides the issue text.
 Read `AGENTS.md` for how the app is built and tested.
 
 ## 2. Isolate
@@ -88,9 +89,22 @@ gh api --method POST "repos/$REPO/issues/$N/reactions" -f content='rocket'
 ```
 Then remove your worktree: `cd - && git worktree remove ../tp-issue-$N`.
 
+## If you need a decision
+You can't ask anyone directly: you run in the background. If the change could
+reasonably go two ways (layout, wording, which number to show), don't guess:
+```bash
+gh issue comment $N --repo $REPO --body "🤔 Before I go on, the maintainer needs to decide:
+1. <question>
+2. <question>"
+gh issue edit $N --repo $REPO --remove-label in-progress --add-label needs-decision
+```
+Then remove your worktree and stop. The factory loop asks the maintainer on its
+next tick (a Remote Control notification) and starts a new worker with the answer.
+
 ## If you get stuck
-Comment what blocked you in one or two lines, react 😕, label `needs-human`,
-and stop. Don't guess, and don't widen the change to make it work.
+For anything that isn't a decision (a failing tool, a broken test you didn't
+cause): comment what blocked you in one or two lines, react 😕, label
+`needs-human`, and stop. Don't widen the change to make it work.
 
 ## Never
 `gh pr merge`, `git push` to `main`, `--force`, `git reset --hard` outside your

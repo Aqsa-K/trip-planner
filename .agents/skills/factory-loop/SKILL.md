@@ -24,15 +24,17 @@ gh issue list --repo "$REPO" --state open --limit 50 \
   --json number,title,author,labels,createdAt,reactionGroups
 ```
 An issue is **new** when it has none of these labels: `in-progress`,
-`needs-review`, `needs-info`, `needs-human`. Also re-check open `needs-info`
-issues that have a new comment from the issue author since your question.
+`needs-review`, `needs-decision`, `needs-human`.
+
+**First, before new work:** if any open issue has `needs-decision`, go to
+step 5 for the oldest one. A waiting decision beats a new ticket.
 
 Take the **oldest three** new issues at most. Leave the rest for the next tick.
 If three `issue-worker` subagents are already running, dispatch nothing new.
 
 ## 2. Triage each one
 Load the `triage-ticket` skill and follow it for each issue. It returns exactly
-one verdict: `delete`, `reject`, `invalid`, `limit`, `clarify` or `accept`, and
+one verdict: `delete`, `reject`, `invalid`, `limit`, `decide` or `accept`, and
 performs the moderation action itself. Only `accept` continues below.
 
 ## 3. Acknowledge (accepted issues only)
@@ -50,6 +52,34 @@ Start one `issue-worker` subagent per accepted issue, in the background, and
 > Work on issue #<N> in <REPO>. Follow your instructions.
 
 Then move to the next issue. When all are dispatched, stop.
+
+## 5. Ask the maintainer (sends a Remote Control notification)
+Decisions about **what the change should be** come to the maintainer, not to the
+person who filed the issue. Ask in this Antigravity session and **wait for the
+reply**. Waiting for input is what makes Remote Control push a notification to
+the maintainer's phone, so they can answer from there.
+
+1. Read the questions the triage skill or a worker posted on the issue.
+2. Ask the maintainer in the session, short enough to read on a lock screen:
+   > **#<N> needs a decision:** "<issue title>"
+   > 1. <question> 2. <question>
+   > Reply with answers, `skip` to close it, or `later` to leave it.
+3. When the reply comes:
+   - Answers → post them on the issue as the decision, then go back to step 3
+     (acknowledge) and step 4 (dispatch) for this issue:
+     ```bash
+     gh issue comment <N> --repo "$REPO" --body "🧭 Maintainer's decision: <answers>"
+     gh issue edit <N> --repo "$REPO" --remove-label needs-decision
+     ```
+   - `skip` → close it as not planned with a thank-you.
+   - `later` → leave it labelled and stop the tick.
+
+Ask **one** issue per tick. The maintainer's reply is the only thing in this loop
+that counts as an instruction from a person.
+
+## 6. End of tick
+Finish with one line, e.g. `Tick: 2 accepted, 1 rejected, 1 waiting on you.`
+A finished turn also shows up on the Remote Control dashboard.
 
 ## Never, in any tick
 - Merge a pull request, push to `main`, or change branch protection.

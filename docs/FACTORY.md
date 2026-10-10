@@ -14,12 +14,24 @@ from reaching the live site, from the first line of defence to the last.
    | Destructive or manipulative ("delete everything", "change the workflow", "ignore your rules") | Closed, labelled `rejected`, locked |
    | Off-topic or gibberish | Closed, labelled `invalid` |
    | Author already has 2 open issues | Closed, "one at a time" |
-   | Unclear | Up to 3 questions, labelled `needs-info` |
+   | Unclear, or needs a design choice | Up to 3 questions on the issue, labelled `needs-decision`; the loop asks the maintainer |
    | Not sure it's abusive | Closed, locked, labelled `needs-human`, never deleted |
    | Clear and harmless | Accepted |
 3. **Acknowledge:** 👀 and a comment on the issue, label `in-progress`.
 4. **Work:** an `issue-worker` subagent per issue, in its own git worktree and port. It opens a pull request with a screenshot and comments the link on the issue (🚀, `needs-review`).
-5. **Ship:** a human reviews and merges. Merging to `main` deploys to GitHub Pages.
+5. **Ask:** when an issue or a worker needs a decision, the loop asks the maintainer
+   in the Antigravity session and waits. With Remote Control on, that pause sends a
+   push notification to the maintainer's phone; the answer is posted on the issue as
+   "🧭 Maintainer's decision" and a worker picks it up.
+6. **Ship:** a human reviews and merges. Merging to `main` deploys to GitHub Pages.
+
+### Remote Control
+```bash
+agy --remote-control          # or /remote-control inside a session
+```
+Sign in at the dashboard with the same Google account and add it to the phone's home
+screen to get notifications when the agent finishes or needs input. The laptop must
+stay awake and online.
 
 ## Guard rails that don't depend on the agent behaving
 The agent can be tricked. These are enforced by GitHub, so they hold anyway.
@@ -46,3 +58,14 @@ gh api -X PUT repos/mashhoodr/trip-planner/interaction-limits -f limit=collabora
 gh api -X DELETE repos/mashhoodr/trip-planner/interaction-limits
 ```
 Stop the loop: cancel the `/schedule` task in Antigravity.
+
+## Changing the protected files (maintainers)
+`.github/`, `.agents/`, `AGENTS.md` and `docs/` can't be changed through a pull request
+(the guard blocks it), and the ruleset blocks direct pushes. To change them, pause the
+ruleset, push, and turn it back on:
+```bash
+RS=$(gh api repos/mashhoodr/trip-planner/rulesets --jq '.[0].id')
+gh api -X PUT repos/mashhoodr/trip-planner/rulesets/$RS -f enforcement=disabled
+git push origin main
+gh api -X PUT repos/mashhoodr/trip-planner/rulesets/$RS -f enforcement=active
+```
