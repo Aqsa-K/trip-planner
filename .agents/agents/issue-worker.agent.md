@@ -31,7 +31,7 @@ gh issue view $N --repo $REPO --comments
 If there's a "🧭 Maintainer's decision" comment, it overrides the issue text.
 If there's a "📎 Also reported" comment, check your fix against every error ref and
 detail listed there too: duplicates often carry the clue the original lacks.
-Read `AGENTS.md` for how the app is built and tested.
+Read `AGENTS.md` for how the app is built.
 
 ## 2. Isolate
 Each worker gets its own worktree and port, so parallel workers don't collide:
@@ -43,7 +43,7 @@ git fetch origin main && git worktree add ../tp-issue-$N -b agent/issue-$N origi
 - Make the smallest change that does what the issue asks. Match the existing
   style: Google Sans, white, one yellow accent `#ffc30e`, cards with a yellow
   border, mobile first.
-- Logic goes in `src/trip.js` with a test in `tests/`. Run tests with `nvm use 24; npm test`; it must pass.
+- Logic goes in `src/trip.js`. **Do not write or run tests**; the pull request's `test` check runs the suite.
 
 ## 4. Check it in a browser and screenshot it
 Run local server and capture screenshot with headless Chrome directly (avoid MCP roundtrips):
@@ -68,8 +68,10 @@ gh pr create --repo $REPO --base main --head agent/issue-$N \
 
 <what changed, in 2–3 lines>
 
-![After](./docs/evidence/issue-$N.png)"
+![After](./docs/evidence/issue-$N.png)" \
+  --attach "./docs/evidence/issue-$N.png#Screenshot after the change"
 ```
+`--attach` uploads the screenshot so it renders in the PR body (gh 2.99+, installed). It is a valid flag; don't check `--help`.
 
 ## 6. Report back on the issue
 ```bash
@@ -79,7 +81,8 @@ gh issue comment $N --repo $REPO \
 
 ![Screenshot](./docs/evidence/issue-$N.png)
 
-Merging it ships the change to the live site."
+Merging it ships the change to the live site." \
+  --attach "./docs/evidence/issue-$N.png#Screenshot after the change"
 gh issue edit $N --repo $REPO --remove-label in-progress --add-label needs-review
 gh api --method POST "repos/$REPO/issues/$N/reactions" -f content='rocket'
 ```
