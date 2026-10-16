@@ -22,6 +22,8 @@ Only these paths: `index.html`, `styles.css`, `src/**`, `tests/**`,
 so don't try.
 
 ## 1. Read
+The issue details (title and description) are already provided in your dispatch prompt, and duplicate checking was completed during triage.
+If there are additional comments to inspect (e.g. maintainer decisions or duplicate tracker notes):
 ```bash
 REPO=<repo>; N=<issue number>
 gh issue view $N --repo $REPO --comments
@@ -34,39 +36,27 @@ Read `AGENTS.md` for how the app is built and tested.
 ## 2. Isolate
 Each worker gets its own worktree and port, so parallel workers don't collide:
 ```bash
-git fetch origin main
-git worktree add ../tp-issue-$N -b agent/issue-$N origin/main
-cd ../tp-issue-$N
-PORT=$((5000 + N))
+git fetch origin main && git worktree add ../tp-issue-$N -b agent/issue-$N origin/main && cd ../tp-issue-$N && PORT=$((5000 + N))
 ```
 
 ## 3. Change
 - Make the smallest change that does what the issue asks. Match the existing
   style: Google Sans, white, one yellow accent `#ffc30e`, cards with a yellow
   border, mobile first.
-- Logic goes in `src/trip.js` with a test in `tests/`. Run `npm test`; it must pass.
+- Logic goes in `src/trip.js` with a test in `tests/`. Run tests with `nvm use 24; npm test`; it must pass.
 
 ## 4. Check it in a browser and screenshot it
+Run local server and capture screenshot with headless Chrome directly (avoid MCP roundtrips):
 ```bash
 python3 -m http.server $PORT --bind 127.0.0.1 >/dev/null 2>&1 &
-```
-With the `chrome-devtools` MCP: `new_page` at `http://127.0.0.1:$PORT/?user=u-1001`,
-resize to 390×844, check the change with `take_snapshot`, make sure
-`list_console_messages` shows no errors, then `take_screenshot` to
-`docs/evidence/issue-$N.png`.
-
-No MCP? Use headless Chrome. It lays out wider than 390 px (use 500) and doesn't
-exit after the screenshot, so start it in the background and stop it yourself:
-```bash
+SERVER_PID=$!
 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-SHOT="docs/evidence/issue-$N.png"
-"$CHROME" --headless --hide-scrollbars --user-data-dir="/tmp/tp-shot-$N" --window-size=500,1000 \
-  --screenshot="$SHOT" "http://127.0.0.1:$PORT/?user=u-1001" >/dev/null 2>&1 &
-CPID=$!
-for i in $(seq 1 20); do [ -s "$SHOT" ] && break; sleep 1; done
-sleep 2; kill $CPID 2>/dev/null
+mkdir -p docs/evidence
+"$CHROME" --headless --hide-scrollbars --user-data-dir="/tmp/tp-shot-$N" --window-size=390,844 \
+  --screenshot="docs/evidence/issue-$N.png" "http://127.0.0.1:$PORT/?user=u-1001" >/dev/null 2>&1
+kill $SERVER_PID 2>/dev/null
 ```
-Stop the server when done (`kill %1`).
+Verify `docs/evidence/issue-$N.png` exists and visually matches the requested change.
 
 ## 5. Pull request
 ```bash
@@ -78,8 +68,7 @@ gh pr create --repo $REPO --base main --head agent/issue-$N \
 
 <what changed, in 2–3 lines>
 
-![After](./docs/evidence/issue-$N.png)" \
-  --attach "./docs/evidence/issue-$N.png#Screenshot after the change"
+![After](./docs/evidence/issue-$N.png)"
 ```
 
 ## 6. Report back on the issue
@@ -90,8 +79,7 @@ gh issue comment $N --repo $REPO \
 
 ![Screenshot](./docs/evidence/issue-$N.png)
 
-Merging it ships the change to the live site." \
-  --attach "./docs/evidence/issue-$N.png#Screenshot after the change"
+Merging it ships the change to the live site."
 gh issue edit $N --repo $REPO --remove-label in-progress --add-label needs-review
 gh api --method POST "repos/$REPO/issues/$N/reactions" -f content='rocket'
 ```

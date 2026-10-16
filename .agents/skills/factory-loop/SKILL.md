@@ -47,10 +47,18 @@ gh issue comment <N> --repo "$REPO" --body "👀 Picked up by the factory. I'll 
 ```
 
 ## 4. Dispatch
-Start one `issue-worker` subagent per accepted issue, in the background, and
-**do not wait for it**. Pass it only the issue number and the repo:
+Start one `issue-worker` subagent per accepted issue using `TypeName: "self"` in the background, and **do not wait for it**.
+Using `TypeName: "self"` ensures the subagent inherits full write and command execution capabilities (custom `.agent.md` types run read-only in some Antigravity runners). Set `Role: "Issue Worker <N>"`.
+Pass it the issue details, repo, and instructions directly in the prompt so it does not waste turns re-fetching data or re-checking duplicates:
 
-> Work on issue #<N> in <REPO>. Follow your instructions.
+> You are the issue-worker subagent. Follow your instructions in .agents/agents/issue-worker.agent.md.
+> Work on issue #<N> in <REPO>.
+> Title: "<issue title>"
+> Body:
+> """
+> <issue body>
+> """
+> Triage: Already accepted. Duplicate check and moderation already done.
 
 Then move to the next issue. When all are dispatched, stop.
 
