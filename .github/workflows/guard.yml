@@ -46,7 +46,7 @@ jobs:
           fi
           urls=$(grep -Eo 'https?://[^ "'"'"')>]+' <<<"$added" || true)
           for u in $urls; do
-            [[ "$u" =~ ^https?://(fonts\.googleapis\.com|fonts\.gstatic\.com|github\.com/mashhoodr/trip-planner|mashhoodr\.github\.io)(/|$) ]] \
+            [[ "$u" =~ ^https?://(fonts\.googleapis\.com|fonts\.gstatic\.com|github\.com/(mashhoodr|Aqsa-K)/trip-planner|(mashhoodr|aqsa-k)\.github\.io)(/|$) ]] \
               || problems+=("adds an external link or script: $u")
           done
 
