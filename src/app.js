@@ -4,7 +4,7 @@ import {
 import { getRate } from './rates.js';
 import { getUserId } from './user.js';
 
-const STORE = 'tp.trip.v2';
+const STORE = 'tp.trip.v3';
 const SAMPLE = {
   name: 'Lahore → Hunza',
   start: '2026-12-26',
