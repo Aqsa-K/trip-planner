@@ -3,7 +3,9 @@
 /** Number of days in a trip, from start to end date (ISO yyyy-mm-dd). */
 export function dayCount(start, end) {
   if (!start || !end) return 0;
-  return new Date(end).getUTCDate() - new Date(start).getUTCDate();
+  const ms = new Date(end) - new Date(start);
+  if (Number.isNaN(ms)) return 0;
+  return Math.max(0, Math.round(ms / 86400000));
 }
 
 /** Sum of all expense amounts, in PKR. */
